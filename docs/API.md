@@ -25,6 +25,11 @@ Defaults to all providers when omitted.
 }
 ```
 
+**Notes**
+
+- Providers are validated; unsupported values return HTTP 422 with `{"detail": "Unsupported providers: ..."}`.
+- Scans are synchronous and return all findings in a single payload for simplicity.
+
 ## GET /misconfigurations
 Returns current misconfiguration findings.
 
@@ -43,4 +48,38 @@ Liveness probe.
 ### Error Handling
 
 - Requests including unsupported providers return HTTP 422 with details.
-- Unexpected errors surface as HTTP 500 with minimal leak of internal details.
+- Validation errors surface as standard FastAPI error responses with `detail` and `loc` fields.
+- Unexpected errors surface as HTTP 500 with minimal leak of internal details; server logs capture stack traces for diagnostics.
+
+### Example Responses
+
+**200 OK — Scan**
+
+```json
+{
+  "assets": [
+    {
+      "name": "finance-uploads",
+      "provider": "aws",
+      "region": "ap-southeast-2",
+      "encryption": true,
+      "public": false,
+      "versioning": true
+    }
+  ],
+  "pii_findings": [],
+  "misconfigurations": [
+    {"resource": "legacy-public-assets", "severity": "CRITICAL", "description": "Bucket permits anonymous reads"}
+  ],
+  "lineage": {"nodes": ["aws:finance-uploads"], "edges": []},
+  "risk": {"score": 72, "misconfiguration_score": 60, "data_score": 12}
+}
+```
+
+**422 Unprocessable Entity — Invalid Providers**
+
+```json
+{
+  "detail": "Unsupported providers: ['digital-ocean']"
+}
+```

@@ -15,6 +15,12 @@ The engine models a full DSPM control-plane spanning discovery, classification, 
 - **Reporting** (`dspm_engine/report/`): Jinja2 templates for Markdown/JSON outputs.
 - **Interfaces**: CLI (`dspm_engine/cli/dspmctl.py`) and API (`dspm_engine/api/server.py`).
 
+### Key Data Contracts
+
+- `StorageAsset`: unified bucket/container representation with provider, name, region, encryption, public exposure, and versioning fields.
+- `ScanResults`: aggregate of assets, PII findings, misconfigurations, lineage graph, and risk scores shared across CLI, API, and reporting layers.
+- `Misconfiguration`: severity-tagged rule outcomes with remediation-friendly messages.
+
 ## Data Flow
 
 1. **Scan orchestration** via `Scanner.scan()` triggers provider enumerations.
@@ -22,6 +28,14 @@ The engine models a full DSPM control-plane spanning discovery, classification, 
 3. **Lineage graph** links assets within each provider for quick visualization.
 4. **Risk scoring** aggregates findings into actionable metrics.
 5. **Reporting** renders Markdown/JSON for stakeholders.
+
+Sequence (high level):
+
+1. Interface layer validates requested providers and builds a `Scanner` instance.
+2. Provider scanners collect assets, normalize them into `StorageAsset`, and emit posture metadata.
+3. Misconfiguration rules and PII detectors run on the normalized assets and sampled object contents.
+4. Lineage is constructed using discovered relationships; risk score blends misconfiguration and data exposure signals.
+5. Reporter renders the results, and the interface layer returns serialized `ScanResults` to callers.
 
 ## Layering and Clean Architecture
 
@@ -36,6 +50,7 @@ The engine models a full DSPM control-plane spanning discovery, classification, 
 - **Logging** is centralized in `dspm_engine/core/logging_utils.py` and defaults to INFO with environment overrides.
 - **Error handling**: invalid provider requests raise `ValueError`, while missing rule files fall back to safe defaults with warnings.
 - **Extensibility**: replace sample discovery methods with SDK-backed implementations; add lineage exporters or detectors without modifying callers thanks to shared models.
+- **Resilience**: scanners are isolated per-provider, so a failure in one provider does not prevent processing others; errors are logged with provider context.
 
 ## Deployment Patterns
 
