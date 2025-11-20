@@ -1,0 +1,7 @@
+{
+  "risk": {{ result.risk.__dict__ | tojson }},
+  "assets": {{ result.assets.buckets | tojson }},
+  "pii_findings": {{ result.pii_findings | map(attribute='__dict__') | list | tojson }},
+  "misconfigurations": {{ misconfigurations | map(attribute='__dict__') | list | tojson }},
+  "lineage": {{ result.lineage.to_json() | tojson }}
+}
