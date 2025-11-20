@@ -1,0 +1,12 @@
+{
+  "aws": [
+    {"name": "finance-uploads", "public": false, "encryption": "AES256"},
+    {"name": "legacy-public-assets", "public": true, "encryption": "none"}
+  ],
+  "azure": [
+    {"name": "analytics-raw", "public": false, "encryption": "microsoft-managed"}
+  ],
+  "gcp": [
+    {"name": "marketing-shared", "public": "allUsers", "encryption": "none"}
+  ]
+}

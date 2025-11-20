@@ -1,0 +1,42 @@
+# Data Security Posture Report
+
+**Risk Score:** {{ result.risk.score }}/100
+
+## Asset Inventory
+{% for bucket in result.assets.buckets %}
+- **{{ bucket.name }}** ({{ bucket.provider }})
+  - Public: {{ bucket.public }} | Encryption: {{ bucket.encryption or 'n/a' }} | Versioning: {{ bucket.versioning }} | Region: {{ bucket.region or 'n/a' }}
+{% endfor %}
+
+## Sensitive Data Findings
+{% if result.pii_findings %}
+| Type | Sample | Location | Provider |
+| --- | --- | --- | --- |
+{% for finding in result.pii_findings %}
+| {{ finding.type }} | {{ finding.sample }} | {{ finding.location }} | {{ finding.provider }} |
+{% endfor %}
+{% else %}
+No sensitive data detected in sampled objects.
+{% endif %}
+
+## Misconfigurations
+{% if misconfigurations %}
+| Resource | Provider | Issue | Severity | Detail |
+| --- | --- | --- | --- | --- |
+{% for finding in misconfigurations %}
+| {{ finding.resource }} | {{ finding.provider }} | {{ finding.issue }} | {{ finding.severity }} | {{ finding.detail }} |
+{% endfor %}
+{% else %}
+No misconfigurations detected.
+{% endif %}
+
+## Data Lineage
+```
+{{ result.lineage.to_mermaid() }}
+```
+
+## Recommendations
+- Enforce encryption at rest with customer-managed keys.
+- Remove public access where not required.
+- Enable versioning and lifecycle policies on critical data sets.
+- Continuously monitor data flows across providers.
